@@ -1,3 +1,4 @@
+import image
 from math import sin, cos, pi, floor, ceil
 
 # s function used in the LBP
@@ -11,12 +12,12 @@ def get_bit(value, i):
     return ((1 << i) & value) >> i
 
 
-# Computes the LBP value in the given image, centered at the point (i, j).
-# P and r are the number of points in the radius and the value of the radius,
+# Computes the LBP value in the given image, centered at the point (row, col).
+# P and R are the number of points in the radius and the value of the radius,
 # respectively.
-def lbp(image, P, R, r, c):
+def lbp(image, P, R, row, col):
     # Color of the center pixel
-    gc_color = image[r][c]
+    gc_color = image.get_pixel(row, col)
 
     # Accumulator for the LBP value
     lbp = 0
@@ -26,7 +27,7 @@ def lbp(image, P, R, r, c):
         gp_r = R * cos(2*pi*p/P)
 
         # Estimate the color of gp
-        gp_color = bilinear_interpolation(image, gp_r+r, gp_c+c)
+        gp_color = bilinear_interpolation(image, gp_r + row, gp_c + col)
 
         increment = lbp_s(gp_color - gc_color) << p
         lbp |= increment
@@ -56,8 +57,8 @@ def u_value(lbp_sequence):
     return u_val
 
 
-def rotation_invariant_uniform_lbp(image, P, R, r, c):
-    lbp_sequence = lbp(image, P, R, r, c)
+def rotation_invariant_uniform_lbp(image, P, R, row, col):
+    lbp_sequence = lbp(image, P, R, row, col)
 
     if u_value(lbp_sequence) > 2:
         return P+1
@@ -70,40 +71,30 @@ def rotation_invariant_uniform_lbp(image, P, R, r, c):
     return result
 
 
-def bilinear_interpolation(image, r, c):
+def bilinear_interpolation(image, row, col):
     # Tolerable difference
     epsilon = 1e-06
 
-    # If the distance from position (r, c) to position ( round(r), round(c) ) 
-    # is small, consider (r, c) both pixel positions to be equal
-    if ( abs(r - round(r)) <= epsilon and abs(c - round(c)) <= epsilon ):
-        return image[ int(round(r)) ][ int(round(c)) ]
+    # If the distance from position (row, col) to position 
+    # ( round(row), round(col) ) is small, consider both pixel 
+    # positions to be equal
+    if ( abs(row - round(row)) <= epsilon and abs(col - round(col)) <= epsilon ):
+        return image.get_pixel( int(round(row)), int(round(col)) )
 
     # Pixels whose values will be used in the interpolation:
     # [p11   p12]
     # [p21   p22]
-    p11 = image[int(floor(r))][int(floor(c))]
-    p12 = image[int(floor(r))][int(ceil(c))]
-    p21 = image[int(ceil(r))][int(floor(c))]
-    p22 = image[int(ceil(r))][int(ceil(c))]
+    p11 = image.get_pixel( int(floor(row)), int(floor(col)) )
+    p12 = image.get_pixel( int(floor(row)), int(ceil(col)) )
+    p21 = image.get_pixel( int(ceil(row)), int(floor(col)) )
+    p22 = image.get_pixel( int(ceil(row)), int(ceil(col)) )
 
     # Interpolate in the j-direction. The resulting values are
     # [q1]
     # [q2]
-    q1 = (ceil(c)-c)*p11 + (c-floor(c))*p12
-    q2 = (ceil(c)-c)*p21 + (c-floor(c))*p22
+    q1 = (ceil(col)-col)*p11 + (col-floor(col))*p12
+    q2 = (ceil(col)-col)*p21 + (col-floor(col))*p22
 
     # Interpolate in the i-direction. The resulting value is 
     # the interpolated result
-    return (ceil(r)-r)*q1 + (r-floor(r))*q2
-
-# Test case
-image = [ [7, 1, 12], [2, 5, 5], [5, 3, 0] ]
-P = 8
-R = 1
-lbp_sequence = lbp(image, P, R, 1, 1)
-
-print( lbp_sequence )
-print( "U value: " + str(u_value(lbp_sequence)) )
-print( "Rotation invariant uniform LBP: " + 
-    str(rotation_invariant_uniform_lbp(image, P, R, 1, 1)) )
+    return (ceil(row)-row)*q1 + (row-floor(row))*q2
