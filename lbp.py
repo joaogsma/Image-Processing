@@ -1,5 +1,6 @@
-from math import sin, cos, pi, floor, ceil, isclose
+from math import sin, cos, pi, floor, ceil
 
+# s function used in the LBP
 def lbp_s(value):
     if (value >= 0):
         return 1
@@ -74,17 +75,16 @@ def bilinear_interpolation(image, i, j):
 
     # If the distance from position (i, j) to position ( round(i), round(j) ) 
     # is small, consider (i, j) both pixel positions to be equal
-    if ( isclose(i, round(i), abs_tol=epsilon) and 
-          isclose(j, round(j), abs_tol=epsilon) ):
-        return image[round(i)][round(j)]
+    if ( abs(i - round(i)) <= epsilon and abs(j - round(j)) <= epsilon ):
+        return image[int(round(i))][int(round(j))]
 
     # Pixels whose values will be used in the interpolation:
     # [p11   p12]
     # [p21   p22]
-    p11 = image[floor(i)][floor(j)]
-    p12 = image[floor(i)][ceil(j)]
-    p21 = image[ceil(i)][floor(j)]
-    p22 = image[ceil(i)][ceil(j)]
+    p11 = image[int(floor(i))][int(floor(j))]
+    p12 = image[int(floor(i))][int(ceil(j))]
+    p21 = image[int(ceil(i))][int(floor(j))]
+    p22 = image[int(ceil(i))][int(ceil(j))]
 
     # Interpolate in the j-direction. The resulting values are
     # [q1]
