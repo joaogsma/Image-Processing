@@ -17,26 +17,27 @@ def get_bit(value, i):
 # respectively.
 def lbp(image, P, R, row, col):
     # Color of the center pixel
-    gc_color = image.get_pixel(row, col)
+    gc_color = int(image.get_pixel(row, col))
 
     # Accumulator for the LBP value
-    lbp = 0
+    lbp = int(0)
 
     for p in range(0, P):
         gp_c = -R * sin(2*pi*p/P)
         gp_r = R * cos(2*pi*p/P)
 
         # Estimate the color of gp
-        gp_color = bilinear_interpolation(image, gp_r + row, gp_c + col)
+        gp_color = int(bilinear_interpolation(image, gp_r + row, gp_c + col))
 
         increment = lbp_s(gp_color - gc_color) << p
+        
         lbp |= increment
 
     return lbp
 
 
 # Computes the U value of a given LBP value (binary sequence)
-def u_value(lbp_sequence):
+def u_value(lbp_sequence, P):
     # Accumulator for the U value
     u_val = 0
 
@@ -60,7 +61,7 @@ def u_value(lbp_sequence):
 def rotation_invariant_uniform_lbp(image, P, R, row, col):
     lbp_sequence = lbp(image, P, R, row, col)
 
-    if u_value(lbp_sequence) > 2:
+    if u_value(lbp_sequence, P) > 2:
         return P+1
 
     result = 0
