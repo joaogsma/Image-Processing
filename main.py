@@ -4,16 +4,14 @@ import config
 
 # Read the image file
 colored_image = Image( raw_input("Type the input file name: ") )
-image = Image.grayscale(colored_image)
+# Convert it to grayscale
+grayscale_image = Image.grayscale(colored_image)
 
-
-# TODO: gaussian filtering
-
+# Apply gaussian_filter
+image = Image.gaussian_filter(grayscale_image, is_grayscale=True, 
+    times=config.gaussian_times)
 
 blocks = list()
-
-print image.height
-print image.width
 
 row = config.block_radius
 while row + config.block_radius < image.height:
@@ -36,5 +34,3 @@ while row + config.block_radius < image.height:
 # Sort blocks lexicographically based on their feature lists
 blocks.sort(key = lambda x: x[1])
 
-for i in blocks:
-    print i

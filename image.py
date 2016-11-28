@@ -1,9 +1,10 @@
-from scipy import misc
-from copy import deepcopy
 import matplotlib.pyplot as plt
-from lbp import rotation_invariant_uniform_lbp
 import numpy as np
 import config
+from copy import deepcopy
+from lbp import rotation_invariant_uniform_lbp
+from scipy import misc
+from scipy.ndimage.filters import gaussian_filter
 
 class Image:
     def __init__(self, path = ''):
@@ -114,5 +115,33 @@ class Image:
                 result._lbp_img[row][col] = -1
                 col += 1
             row += 1
+
+        return result
+
+
+    def gaussian_filter(image, is_grayscale=False, times=1):
+        gray_image = image
+        
+        if not is_grayscale:
+            # Obtain grayscale image from parameter
+            gray_image = Image.grayscale(image)
+        
+        # Create the result to be smoothed
+        result = deepcopy(gray_image)
+
+        # Ensures the filter is 5x5
+        truncate_val = 2/config.gaussian_sigma
+        # Apply gaussian filter to grayscale image
+        gaussian_filter(gray_image._img, sigma=config.gaussian_sigma, 
+            truncate=truncate_val, output=result._img)
+        times -= 1
+
+        # Apply the filter the remaining number of times. The first time is done
+        # separately for memory optimization
+        while times > 0:
+            result._img = gaussian_filter(image._img, 
+                sigma=config.gaussian_sigma, truncate=truncate_val)
+            times -= 1
+
 
         return result
