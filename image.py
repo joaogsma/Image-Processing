@@ -1,10 +1,30 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import config
+import threading
 from copy import deepcopy
 from lbp import rotation_invariant_uniform_lbp
 from scipy import misc
 from scipy.ndimage.filters import gaussian_filter
+
+NUM_THREADS = 8
+
+class LBP_Thread (threading.Thread):
+    def __init__(self, row_num, image_pointer):
+        threading.Thread.__init__(self)
+        self.row_num = row_num
+        self.image_pointer = image_pointer
+    
+    def run(self):
+        col = 0
+        
+        while col < self.image_pointer.width:
+            if self.image_pointer._lbp_img[self.row_num][col] == -1:
+                self.image_pointer._lbp_img[self.row_num][col] = rotation_invariant_uniform_lbp( 
+                    self.image_pointer, config.P, config.R, self.row_num, col )
+            col += 1
+
+
 
 class Image:
     def __init__(self, path = ''):
@@ -46,6 +66,27 @@ class Image:
                 config.P, config.R, row, col)
 
         return self._lbp_img[row][col]
+
+
+    def fill_lbp(self):
+        row = 0
+
+        threads = list()
+
+        while row < self.height:
+            new_thread = LBP_Thread(row, self)
+            threads.append( new_thread )
+            new_thread.start()
+
+            print row
+
+            if len(threads) == NUM_THREADS:
+                for t in threads:
+                    t.join()
+                threads = list()
+
+            row += 1
+
 
 
     def valid(self):

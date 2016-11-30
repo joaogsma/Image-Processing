@@ -22,7 +22,8 @@ def lbp(image, P, R, row, col):
     # Accumulator for the LBP value
     lbp = int(0)
 
-    for p in range(0, P):
+    p = 0
+    while p < P :
         gp_c = -R * sin(2*pi*p/P)
         gp_r = R * cos(2*pi*p/P)
 
@@ -32,6 +33,7 @@ def lbp(image, P, R, row, col):
         increment = lbp_s(gp_color - gc_color) << p
         
         lbp |= increment
+        p += 1
 
     return lbp
 
@@ -43,11 +45,13 @@ def u_value(lbp_sequence, P):
 
     # Compute the number of transitions from the first bit 
     # to the last
-    for p in range(1, P):
+    p = 1
+    while p < P:
         current = get_bit(lbp_sequence, p)
         previous = get_bit(lbp_sequence, p-1)
 
         u_val += abs(current - previous)
+        p += 1
 
     # Check for a possible transition between the last bit 
     # and the first
@@ -66,8 +70,10 @@ def rotation_invariant_uniform_lbp(image, P, R, row, col):
 
     result = 0
 
-    for p in range(0, P):
+    p = 0
+    while p < P:
         result += get_bit(lbp_sequence, p)
+        p +=1 
 
     return result
 
