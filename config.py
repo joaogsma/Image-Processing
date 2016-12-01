@@ -1,3 +1,5 @@
+num_threads = 8
+
 # Radius of circular blocks
 block_radius = 9
 

@@ -1,28 +1,26 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import config
-import threading
 from copy import deepcopy
 from lbp import rotation_invariant_uniform_lbp
+from math import ceil
+from multiprocessing import Process
 from scipy import misc
 from scipy.ndimage.filters import gaussian_filter
 
-NUM_THREADS = 8
+def fill_lbp_line(image, min_row, max_row):
+    row = min_row
 
-class LBP_Thread (threading.Thread):
-    def __init__(self, row_num, image_pointer):
-        threading.Thread.__init__(self)
-        self.row_num = row_num
-        self.image_pointer = image_pointer
-    
-    def run(self):
+    while row < max_row:
         col = 0
         
-        while col < self.image_pointer.width:
-            if self.image_pointer._lbp_img[self.row_num][col] == -1:
-                self.image_pointer._lbp_img[self.row_num][col] = rotation_invariant_uniform_lbp( 
-                    self.image_pointer, config.P, config.R, self.row_num, col )
+        while col < image.width:
+            if image._lbp_img[row][col] == -1:
+                image._lbp_img[row][col] = rotation_invariant_uniform_lbp( 
+                    image, config.P, config.R, row, col )
             col += 1
+
+        row += 1
 
 
 def black_image(num_rows, num_cols):
@@ -103,21 +101,24 @@ class Image:
     def fill_lbp(self):
         row = 0
 
-        threads = list()
+        processes = list()
+
+        increment = int( ceil(self.height / float(config.num_threads)) )
+
+        print "increment: " + str(increment)
 
         while row < self.height:
-            new_thread = LBP_Thread(row, self)
-            threads.append( new_thread )
-            new_thread.start()
+            new_process = Process( target=fill_lbp_line, 
+                args=(self, row, min(row+increment, self.height))  )
+            processes.append( new_process )
+            new_process.start()
 
-            print row
+            print "row: " + str(row) + "   min: " + str(row) + "   max: " + str(min(row+increment, self.height))
 
-            if len(threads) == NUM_THREADS:
-                for t in threads:
-                    t.join()
-                threads = list()
-
-            row += 1
+            row += increment
+        
+        for p in processes:
+            p.join()
 
 
 
