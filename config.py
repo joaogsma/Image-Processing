@@ -18,3 +18,8 @@ distance_threshold = 30
 
 # Maximum distance for blocks to be considered a match
 similarity_threshold = 6.2
+
+# Specifications of the custom filter used to reduce false positive matches
+custom_filter_height = 8
+custom_filter_width = 8
+custom_filter_threshold = 2

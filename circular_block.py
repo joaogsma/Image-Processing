@@ -18,7 +18,7 @@ class Circular_Block:
             self.center_col <= self._img.width - config.block_radius)
 
 
-    def features(self, do_sort=False):
+    def features(self, do_sort=True):
         if not self.valid():
             raise Exception("Block not entirely inside image")
 

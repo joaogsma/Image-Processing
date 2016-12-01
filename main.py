@@ -1,4 +1,4 @@
-from image import Image
+from image import Image, black_image
 from circular_block import Circular_Block
 from math import sqrt
 from sys import maxint
@@ -94,4 +94,21 @@ for (current_block, current_block_features) in blocks:
         matches.append( best_match )
 
     if pos % 1000 == 0:
-        print float(pos)/len(blocks)
+        print float(pos) / len(blocks)
+
+
+# Paint matched blocks in a black image
+matched_mask = black_image(image.height, image.width)
+
+for block in matches:
+    matched_mask.set_pixel_gray(block.center_row, block.center_col, 255)
+    matched_mask.set_pixel_gray(block.center_row-1, block.center_col, 255)
+    matched_mask.set_pixel_gray(block.center_row+1, block.center_col, 255)
+    matched_mask.set_pixel_gray(block.center_row, block.center_col-1, 255)
+    matched_mask.set_pixel_gray(block.center_row, block.center_col+1, 255)
+
+matched_mask.show()
+
+Image.custom_filter(matched_mask)
+
+matched_mask.show()

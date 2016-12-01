@@ -25,13 +25,32 @@ class LBP_Thread (threading.Thread):
             col += 1
 
 
+def black_image(num_rows, num_cols):
+    result = Image()
+
+    result._img = np.zeros(shape=(num_rows, num_cols), dtype=np.uint8)
+    result.height = num_rows
+    result.width = num_cols
+    result._gray = True
+
+    result._lbp_img = np.zeros(shape=(num_rows, num_cols), dtype=int)
+
+    row = 0
+    while row < num_rows:
+        col = 0
+        while col < num_cols:
+            result._lbp_img[row][col] = -1
+            col += 1
+        row += 1
+
+    return result
+
 
 class Image:
-    def __init__(self, path = ''):
+    def __init__(self, path=''):
         self._img = np.array(list(), dtype=np.uint8)
         self.height = 0
         self.width = 0
-        self._initialized = False
         self._gray=False
         
         if len(path) > 0:
@@ -39,22 +58,35 @@ class Image:
 
 
     def get_pixel(self, row, col):
-        if (row < 0 or row >= self.height or col < 0 or col >= self.width):
-            if self._gray:
-                return np.uint8(0)
-            else:
-                return np.array([0, 0, 0], dtype=np.uint8)
+        # Pick the replicated equivalent row, if the specified one is out of bounds
+        if row < 0:
+            row = config.P - row
+        elif row >= self.height:
+            row = row - config.P
+        
+        # Pick the replicated equivalent column, if the specified one is out of bounds
+        if col < 0:
+            col = config.P - col
+        elif col >= self.width:
+            col = col - config.P
 
         return self._img[row][col]
 
 
-    def set_pixel(self, row, col, red, green, blue):
+    def set_pixel_rgb(self, row, col, red, green, blue):
         if (row < 0 or row > self.height or col < 0 or col > self.width):
             raise Exception("Image out of bounds")
 
-        self._img[row][col][0] = red
-        self._img[row][col][1] = green
-        self._img[row][col][2] = blue
+        self._img[row][col][0] = np.uint8(red)
+        self._img[row][col][1] = np.uint8(green)
+        self._img[row][col][2] = np.uint8(blue)
+
+
+    def set_pixel_gray(self, row, col, color):
+        if (row < 0 or row > self.height or col < 0 or col > self.width):
+            raise Exception("Image out of bounds")
+
+        self._img[row][col] = np.uint8(color)
 
 
     def get_lbp(self, row, col):
@@ -97,7 +129,6 @@ class Image:
         self._img = misc.imread(path)
         self.height = len(self._img)
         self.width = len(self._img[0])
-        self._initialized = True
 
         self._lbp_img = np.zeros(shape=(self.height, self.width), dtype=int)
 
@@ -174,7 +205,7 @@ class Image:
         truncate_val = 2/config.gaussian_sigma
         # Apply gaussian filter to grayscale image
         gaussian_filter(gray_image._img, sigma=config.gaussian_sigma, 
-            truncate=truncate_val, output=result._img)
+            truncate=truncate_val, output=result._img, mode='reflect')
         times -= 1
 
         # Apply the filter the remaining number of times. The first time is done
@@ -186,3 +217,54 @@ class Image:
 
 
         return result
+
+
+    def custom_filter(image):
+        window_pos_row = 0
+
+        while window_pos_row < image.height:
+            window_pos_col = 0
+
+            while window_pos_col < image.width:
+                print (window_pos_row, window_pos_col)
+
+                # Max row and col for this window
+                max_row = min(window_pos_col+config.custom_filter_height, image.height)
+                max_col = min(window_pos_col+config.custom_filter_width, image.width)
+                
+                # Counter for black pixels
+                black_pixels = 0
+
+                # ===== Count the number of black pixels in the window =====
+                row = window_pos_col
+                while row < max_row:
+                    col = window_pos_col
+                    
+                    while col < max_col:
+                        if image._img[row][col] == 0:
+                            black_pixels += 1
+                    
+                            if black_pixels == config.custom_filter_threshold:
+                                break
+
+                        col += 1
+                    
+                    if black_pixels == config.custom_filter_threshold:
+                        break
+                        
+                    row += 1
+                # ==========================================================
+
+                # If there are enough black pixels, set all of them to black
+                if black_pixels == config.custom_filter_threshold:
+                    row = window_pos_col
+                    while row < max_row:
+                        col = window_pos_col
+                        while col < max_col:
+                            image._img[row][col] = 0
+                            col += 1
+                        row += 1
+
+                window_pos_col += config.custom_filter_width
+
+            window_pos_row += config.custom_filter_height
