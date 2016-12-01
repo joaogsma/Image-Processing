@@ -4,23 +4,19 @@ import config
 from copy import deepcopy
 from lbp import rotation_invariant_uniform_lbp
 from math import ceil
-from multiprocessing import Process
+from threading import Thread
 from scipy import misc
 from scipy.ndimage.filters import gaussian_filter
 
 def fill_lbp_line(image, min_row, max_row):
-    row = min_row
 
-    while row < max_row:
-        col = 0
-        
-        while col < image.width:
+    for row in range(min_row, max_row):
+        for col in range(image.width):
             if image._lbp_img[row][col] == -1:
-                image._lbp_img[row][col] = rotation_invariant_uniform_lbp( 
-                    image, config.P, config.R, row, col )
-            col += 1
-
-        row += 1
+                #image._lbp_img[row][col] = rotation_invariant_uniform_lbp( 
+                #    image, config.P, config.R, row, col )
+                image.set_lbp(row ,col, rotation_invariant_uniform_lbp( 
+                    image, config.P, config.R, row, col ))
 
 
 def black_image(num_rows, num_cols):
@@ -31,15 +27,7 @@ def black_image(num_rows, num_cols):
     result.width = num_cols
     result._gray = True
 
-    result._lbp_img = np.zeros(shape=(num_rows, num_cols), dtype=int)
-
-    row = 0
-    while row < num_rows:
-        col = 0
-        while col < num_cols:
-            result._lbp_img[row][col] = -1
-            col += 1
-        row += 1
+    result._lbp_img = np.full((num_rows, num_cols), -1, dtype=int)
 
     return result
 
@@ -50,7 +38,6 @@ class Image:
         self.height = 0
         self.width = 0
         self._gray=False
-        
         if len(path) > 0:
             self.load(path)
 
@@ -94,9 +81,10 @@ class Image:
         if self._lbp_img[row][col] == -1:
             self._lbp_img[row][col] = rotation_invariant_uniform_lbp(self, 
                 config.P, config.R, row, col)
-
         return self._lbp_img[row][col]
 
+    def set_lbp(self, row, col, value):
+        self._lbp_img[row][col] = value    
 
     def fill_lbp(self):
         row = 0
@@ -108,7 +96,7 @@ class Image:
         print "increment: " + str(increment)
 
         while row < self.height:
-            new_process = Process( target=fill_lbp_line, 
+            new_process = Thread( target=fill_lbp_line, 
                 args=(self, row, min(row+increment, self.height))  )
             processes.append( new_process )
             new_process.start()
@@ -119,6 +107,7 @@ class Image:
         
         for p in processes:
             p.join()
+        
 
 
 
@@ -131,17 +120,7 @@ class Image:
         self.height = len(self._img)
         self.width = len(self._img[0])
 
-        self._lbp_img = np.zeros(shape=(self.height, self.width), dtype=int)
-
-        row = 0
-        while row < self.height:
-            col = 0
-            while col < self.width:
-                self._lbp_img[row][col] = -1
-                col += 1
-            row += 1
-
-
+        self._lbp_img = np.full((self.height, self.width), -1, dtype=int)
 
     def save(self, path):
         misc.imsave(path, self._img)
@@ -151,7 +130,7 @@ class Image:
         if self._gray:
             plt.imshow(self._img, cmap=plt.cm.gray)
         else:
-            plt.imshow(self._img, cmap=plt.cm.gray)
+            plt.imshow(self._img)
 
         plt.show()
 
@@ -179,15 +158,7 @@ class Image:
                 col += 1
             row += 1
 
-        result._lbp_img = np.zeros(shape=(result.height, result.width), dtype=int)
-
-        row = 0
-        while row < result.height:
-            col = 0
-            while col < result.width:
-                result._lbp_img[row][col] = -1
-                col += 1
-            row += 1
+        result._lbp_img = np.full((result.height, result.width), -1, dtype=int)
 
         return result
 

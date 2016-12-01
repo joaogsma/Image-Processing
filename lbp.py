@@ -22,8 +22,7 @@ def lbp(image, P, R, row, col):
     # Accumulator for the LBP value
     lbp = int(0)
 
-    p = 0
-    while p < P :
+    for p in range(P):
         gp_c = -R * sin(2*pi*p/P)
         gp_r = R * cos(2*pi*p/P)
 
@@ -33,7 +32,6 @@ def lbp(image, P, R, row, col):
         increment = lbp_s(gp_color - gc_color) << p
         
         lbp |= increment
-        p += 1
 
     return lbp
 

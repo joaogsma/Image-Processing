@@ -22,8 +22,6 @@ class Circular_Block:
         if not self.valid():
             raise Exception("Block not entirely inside image")
 
-        feature_list = list()
-
         #print "begin center feature"
         center_feature = self._features_in_direction(self.center_row, 
             self.center_col, 0, 0)
@@ -87,15 +85,14 @@ class Circular_Block:
         #print southwest_features
         #print
 
-        feature_list.extend(center_feature)
-        feature_list.extend(north_features)
-        feature_list.extend(south_features)
-        feature_list.extend(east_features)
-        feature_list.extend(west_features)
-        feature_list.extend(northeast_features)
-        feature_list.extend(northwest_features)
-        feature_list.extend(southeast_features)
-        feature_list.extend(southwest_features)
+        feature_list = np.concatenate((
+            center_feature, north_features,
+            south_features, east_features ,
+            west_features , northeast_features ,
+            northwest_features , southeast_features ,
+            southwest_features) , axis = 0)
+
+
 
         if do_sort:
             feature_list.sort()
@@ -128,7 +125,7 @@ class Circular_Block:
 
 
         row = center_row
-
+        
         while True:
             col = center_col
 
@@ -161,7 +158,5 @@ class Circular_Block:
         distance = math.sqrt( math.pow(row - self.center_row, 2) + 
             math.pow(col - self.center_col, 2))
 
-        if distance <= config.block_radius + epsilon:
-            return True
-
-        return False
+        return distance <= config.block_radius + epsilon
+        
