@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import config
+import cv2
 from copy import deepcopy
 from lbp import rotation_invariant_uniform_lbp
 from math import ceil
@@ -101,15 +102,10 @@ class Image:
 
         increment = int( ceil(self.height / float(config.num_threads)) )
 
-        print "increment: " + str(increment)
-
         while row < self.height:
             new_process = Process( target=fill_lbp_line, 
                 args=(self, row, min(row+increment, self.height), queue)  )
             new_process.start()
-
-            print "row: " + str(row) + "   min: " + str(row) + "   max: " + str(min(row+increment, self.height))
-
             row += increment
         
         for i in range(config.num_threads):
@@ -176,6 +172,26 @@ class Image:
         return result
 
 
+    def opening(image, kernel, in_place=False):
+        if not image._gray:
+            raise Exception("Must be a binary image")
+
+        result = cv2.morphologyEx(image._img, cv2.MORPH_OPEN, 
+            kernel.astype(np.uint8))
+
+        target = None
+        if in_place:
+            target = image
+        else:
+            target = deepcopy(image)
+        
+        target._img = result
+        target._lbp_img = np.full((target.height, target.width), -1, dtype=int)
+
+        if not in_place:
+            return target
+
+
     def gaussian_filter(image, is_grayscale=False, times=1):
         gray_image = image
         
@@ -211,8 +227,6 @@ class Image:
             window_pos_col = 0
 
             while window_pos_col < image.width:
-                print (window_pos_row, window_pos_col)
-
                 # Max row and col for this window
                 max_row = min(window_pos_col+config.custom_filter_height, image.height)
                 max_col = min(window_pos_col+config.custom_filter_width, image.width)
