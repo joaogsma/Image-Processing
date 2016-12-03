@@ -26,5 +26,8 @@ custom_filter_height = 8
 custom_filter_width = 8
 custom_filter_threshold = 2
 
-#
+# Set True if the verification for matches in the circular blocks should go 
+# beyond the distance_threshold to compensate for blocks that are too close 
+# (and therefore ignore)
 expanded_matching = False
+

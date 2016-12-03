@@ -4,23 +4,27 @@ import config
 from copy import deepcopy
 from lbp import rotation_invariant_uniform_lbp
 from math import ceil
-from multiprocessing import Process
+from multiprocessing import Process, Queue
 from scipy import misc
 from scipy.ndimage.filters import gaussian_filter
 
-def fill_lbp_line(image, min_row, max_row):
+def fill_lbp_line(image, min_row, max_row, result_queue):
     row = min_row
+
+    result = np.zeros(shape=(max_row-min_row, image.width), dtype=int)
 
     while row < max_row:
         col = 0
 
         while col < image.width:
             if image._lbp_img[row][col] == -1:
-                image._lbp_img[row][col] = rotation_invariant_uniform_lbp( 
+                result[row - min_row][col] = rotation_invariant_uniform_lbp( 
                     image, config.P, config.R, row, col )
             col += 1
 
         row += 1
+
+    result_queue.put( (min_row, max_row, result) )
                 
 
 def black_image(num_rows, num_cols):
@@ -93,7 +97,7 @@ class Image:
     def fill_lbp(self):
         row = 0
 
-        processes = list()
+        queue = Queue()
 
         increment = int( ceil(self.height / float(config.num_threads)) )
 
@@ -101,16 +105,23 @@ class Image:
 
         while row < self.height:
             new_process = Process( target=fill_lbp_line, 
-                args=(self, row, min(row+increment, self.height))  )
-            processes.append( new_process )
+                args=(self, row, min(row+increment, self.height), queue)  )
             new_process.start()
 
             print "row: " + str(row) + "   min: " + str(row) + "   max: " + str(min(row+increment, self.height))
 
             row += increment
         
-        for p in processes:
-            p.join()
+        for i in range(config.num_threads):
+            (min_row, max_row, contents) = queue.get()
+            
+            row = min_row
+            while row < max_row:
+                col = 0
+                while col < self.width:
+                    self._lbp_img[row][col] = contents[row - min_row][col]
+                    col += 1
+                row += 1
 
 
     def valid(self):
