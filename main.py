@@ -1,22 +1,25 @@
 from image import Image, black_image
 from circular_block import Circular_Block
 from math import sqrt, ceil
-from multiprocessing import Queue
-from threading import Thread
+from multiprocessing import Process, Queue
 from sys import maxint
 import numpy as np
 import config, sys
 
 def comparation_funcion(vec1, vec2):
-    for i in range(vec1[1].shape[0]):
+    i = 0
+    size = vec1[1].shape[0]
+
+    while i < size:
         if vec1[1][i] < vec2[1][i]:
             return -1
         if vec1[1][i] > vec2[1][i]:
             return 1
+        i += 1
+
     return -1
 
 def euclidean_distance(vec1, vec2):
-
     return np.sqrt(((vec1 - vec2)**2).sum())
 
 
@@ -42,6 +45,7 @@ def compute_features_line(min_row, max_row, image, blocks):
         row += 1
         
     blocks.put(local_blocks)
+    print "done"
 
 
 if __name__ == "__main__":
@@ -74,7 +78,7 @@ if __name__ == "__main__":
 
     total_blocks = 0
     while row < block_row_end:
-        new_process = Thread(target=compute_features_line, 
+        new_process = Process(target=compute_features_line, 
             args=(row, min(row+row_increment, block_row_end), image, queue))
         processes.append( new_process )
         new_process.start()
@@ -86,14 +90,18 @@ if __name__ == "__main__":
         
         row += row_increment
 
-    for p in processes:
-        p.join()
-
     num_blocks = 0
+
+    print "going to wait"
+    
     while num_blocks < config.num_threads:
+        print queue.qsize()
         blocks.extend( queue.get() )
+        print queue.qsize()
 
         num_blocks += 1              
+
+    print "done waiting"
 
     # Sort blocks lexicographically based on their feature lists
     blocks.sort(cmp = comparation_funcion)
@@ -118,7 +126,8 @@ if __name__ == "__main__":
             if center_distance < 2 * config.block_radius:
                 # If there are still blocks after the ones in similar_block_list, 
                 # append the next one
-                if len(blocks) > pos + 1 + config.distance_threshold + extra:
+                if (config.expanded_matching and 
+                        len(blocks) > pos+1+config.distance_threshold+extra):
                     similar_block_list.append( 
                         blocks[pos + 1 + config.distance_threshold + extra] )
                     
@@ -127,7 +136,7 @@ if __name__ == "__main__":
             else:
                 # Compute the euclidean distance between the feature vectors
                 features_distance = euclidean_distance( current_block_features, 
-                    similar_block_features)
+                    similar_block_features )
                 
                 # Update pointers if this is a better match
                 if features_distance < best_distance:

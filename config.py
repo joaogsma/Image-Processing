@@ -25,3 +25,6 @@ similarity_threshold = 6.2
 custom_filter_height = 8
 custom_filter_width = 8
 custom_filter_threshold = 2
+
+#
+expanded_matching = False

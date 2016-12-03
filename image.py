@@ -4,20 +4,24 @@ import config
 from copy import deepcopy
 from lbp import rotation_invariant_uniform_lbp
 from math import ceil
-from threading import Thread
+from multiprocessing import Process
 from scipy import misc
 from scipy.ndimage.filters import gaussian_filter
 
 def fill_lbp_line(image, min_row, max_row):
+    row = min_row
 
-    for row in range(min_row, max_row):
-        for col in range(image.width):
+    while row < max_row:
+        col = 0
+
+        while col < image.width:
             if image._lbp_img[row][col] == -1:
-                #image._lbp_img[row][col] = rotation_invariant_uniform_lbp( 
-                #    image, config.P, config.R, row, col )
-                image.set_lbp(row ,col, rotation_invariant_uniform_lbp( 
-                    image, config.P, config.R, row, col ))
+                image._lbp_img[row][col] = rotation_invariant_uniform_lbp( 
+                    image, config.P, config.R, row, col )
+            col += 1
 
+        row += 1
+                
 
 def black_image(num_rows, num_cols):
     result = Image()
@@ -38,6 +42,7 @@ class Image:
         self.height = 0
         self.width = 0
         self._gray=False
+
         if len(path) > 0:
             self.load(path)
 
@@ -81,10 +86,9 @@ class Image:
         if self._lbp_img[row][col] == -1:
             self._lbp_img[row][col] = rotation_invariant_uniform_lbp(self, 
                 config.P, config.R, row, col)
+
         return self._lbp_img[row][col]
 
-    def set_lbp(self, row, col, value):
-        self._lbp_img[row][col] = value    
 
     def fill_lbp(self):
         row = 0
@@ -96,7 +100,7 @@ class Image:
         print "increment: " + str(increment)
 
         while row < self.height:
-            new_process = Thread( target=fill_lbp_line, 
+            new_process = Process( target=fill_lbp_line, 
                 args=(self, row, min(row+increment, self.height))  )
             processes.append( new_process )
             new_process.start()
@@ -107,8 +111,6 @@ class Image:
         
         for p in processes:
             p.join()
-        
-
 
 
     def valid(self):
