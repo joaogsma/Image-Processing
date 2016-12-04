@@ -16,7 +16,7 @@ gaussian_sigma = 2
 gaussian_times = 2
 
 # Maximum matching distance searched per block
-distance_threshold = 30
+distance_threshold = 50 #30
 
 # Maximum distance for blocks to be considered a match
 similarity_threshold = 6.2
@@ -24,10 +24,10 @@ similarity_threshold = 6.2
 # Specifications of the custom filter used to reduce false positive matches
 custom_filter_height = 8
 custom_filter_width = 8
-custom_filter_threshold = 2
+custom_filter_threshold = 15
 
 # Set True if the verification for matches in the circular blocks should go 
 # beyond the distance_threshold to compensate for blocks that are too close 
-# (and therefore ignore)
+# (and therefore ignored)
 expanded_matching = False
 

@@ -1,0 +1,57 @@
+Indices:
+(170, 1115): 392441
+(192, 756): 391915
+
+Distância entre as features: 13.6747943312
+
+Features:
+(170, 1115):
+[  0:  1,  2:  3,  3:  3,  4:  4,  5:  7,  6:  4,  7:  6,  8:  9, 
+   9: 19, 10: 12, 11: 25, 12: 11, 13: 20, 14: 15, 15:  9, 16:  4, 
+  17:  6, 18:  6, 19:  9, 20:  9, 21:  7, 22:  1, 24: 10, 25: 53 ]
+
+(192, 756):
+[  0:  1,  2: 3,  3:  9,  4:  6,  5:  8,  6:  3,  7:  2,  8:  3, 
+   9: 14, 10: 6, 11: 21, 12: 19, 13: 18, 14: 19, 15: 18, 16:  8, 
+  17:  3, 18: 3, 19: 10, 20: 15, 21:  5, 22:  1, 24:  9, 25: 49 ]
+
+********************
+
+Distância mínima dentre as 30 linhas: 12.3693168769
+(90, 620):
+[  0:  1,  2: 3,  3:  3,  4:  3,  5:  9,  6:  6,  7:  5,  8:  6, 
+   9: 11, 10: 9, 11: 16, 12: 20, 13: 15, 14: 13, 15: 15, 16: 14, 
+  17: 14, 18: 5, 19:  3, 20: 10, 21:  5, 22:  3, 23:  4, 24:  9, 
+  25: 51 ]
+
+
+Code:
+position = 0
+found_pos = -1
+found_other_pos = -1
+while position < len(blocks):
+    if ( blocks[position][0].center_row == 170 and 
+            blocks[position][0].center_col == 1115 ):
+        found_pos = position
+    if ( blocks[position][0].center_row == 192 and 
+            blocks[position][0].center_col == 756 ):
+        found_other_pos = position
+    position += 1
+
+for b in blocks[found_pos:found_pos+31]:
+    print ( str((b[0].center_row, b[0].center_col)) + " => " + 
+        str(euclidean_distance( blocks[found_pos][1], b[1] )) )
+    print b[1]
+    print "*****"
+    
+print
+print "Distance to other:"
+print "found_position: " + str(found_pos)
+print "found_other_pos: " + str(found_other_pos)
+print ( "Features distance: " + str( euclidean_distance( 
+    blocks[found_pos][1], blocks[found_other_pos][1] )))
+print "First: "
+print blocks[found_pos][1]
+print "Other: "
+print blocks[found_other_pos][1]
+print "*****"

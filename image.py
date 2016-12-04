@@ -231,31 +231,26 @@ class Image:
                 max_row = min(window_pos_col+config.custom_filter_height, image.height)
                 max_col = min(window_pos_col+config.custom_filter_width, image.width)
                 
-                # Counter for black pixels
-                black_pixels = 0
+                # Counter for white pixels
+                white_pixels = 0
 
                 # ===== Count the number of black pixels in the window =====
                 row = window_pos_col
-                while row < max_row:
+                while (row < max_row and 
+                        white_pixels < config.custom_filter_threshold):
                     col = window_pos_col
                     
-                    while col < max_col:
-                        if image._img[row][col] == 0:
-                            black_pixels += 1
-                    
-                            if black_pixels == config.custom_filter_threshold:
-                                break
-
+                    while (col < max_col and 
+                            white_pixels < config.custom_filter_threshold):
+                        if image._img[row][col] == 255:
+                            white_pixels += 1
                         col += 1
                     
-                    if black_pixels == config.custom_filter_threshold:
-                        break
-                        
                     row += 1
                 # ==========================================================
 
-                # If there are enough black pixels, set all of them to black
-                if black_pixels == config.custom_filter_threshold:
+                # If there are not enough white pixels, set all of them to black
+                if white_pixels < config.custom_filter_threshold:
                     row = window_pos_col
                     while row < max_row:
                         col = window_pos_col
