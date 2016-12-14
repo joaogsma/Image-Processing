@@ -3,7 +3,7 @@ import numpy as np
 import config
 import cv2
 from copy import deepcopy
-from lbp import rotation_invariant_uniform_lbp
+from lbp import rotation_invariant_uniform_lbp, rotation_invariant_center_symmetric_lbp
 from math import ceil
 from multiprocessing import Process, Queue
 from scipy import misc
@@ -19,8 +19,14 @@ def fill_lbp_line(image, min_row, max_row, result_queue):
 
         while col < image.width:
             if image._lbp_img[row][col] == -1:
-                result[row - min_row][col] = rotation_invariant_uniform_lbp( 
-                    image, config.P, config.R, row, col )
+                if config.lbp_type == 'lbp':
+                    result[row - min_row][col] = rotation_invariant_uniform_lbp( 
+                        image, config.P, config.R, row, col )
+                elif config.lbp_type == 'cslbp':
+                    result[row - min_row][col] = rotation_invariant_center_symmetric_lbp( 
+                        image, config.P, config.R, row, col )
+                else:
+                    raise Exception('Invalid LBP type')
             col += 1
 
         row += 1
@@ -89,8 +95,14 @@ class Image:
             raise Exception("Image out of bounds")
 
         if self._lbp_img[row][col] == -1:
-            self._lbp_img[row][col] = rotation_invariant_uniform_lbp(self, 
-                config.P, config.R, row, col)
+            if config.lbp_type == 'lbp':
+                self._lbp_img[row][col] = rotation_invariant_uniform_lbp(self, 
+                    config.P, config.R, row, col)
+            elif config.lbp_type == 'cslbp':
+                self._lbp_img[row][col] = rotation_invariant_center_symmetric_lbp(
+                    self, config.P, config.R, row, col)
+            else:
+                raise Exception('Invalid LBP type')
 
         return self._lbp_img[row][col]
 
@@ -218,6 +230,38 @@ class Image:
                 sigma=config.gaussian_sigma, truncate=truncate_val)
             times -= 1
 
+
+        return result
+
+
+    def mean_filter(image, kernel_size=3):
+        if kernel_size <= 0 or kernel_size % 2 == 0:
+            raise Exception('Invalid kernel size')
+        
+        result = Image.grayscale(image)
+        
+        row = 0
+        while row < image.height:
+            col = 0
+            while col < image.width:
+                summation = 0.0
+                increment = (kernel_size - 1) / 2
+                
+                # Compute the sum
+                row_inc = -increment
+                while row_inc <= increment:
+                    col_inc = -increment
+                    while col_inc <= increment:
+                        summation += image.get_pixel( row + row_inc, col + col_inc )
+                        col_inc += 1
+                    row_inc += 1
+                
+                mean = summation / (kernel_size**2)
+
+                result._img[row][col] = mean
+
+                col += 1
+            row += 1
 
         return result
 

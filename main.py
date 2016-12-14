@@ -71,9 +71,16 @@ if __name__ == "__main__":
 
     del colored_image
 
-    # Apply gaussian_filter
-    image = Image.gaussian_filter(grayscale_image, is_grayscale=True, 
-        times=config.gaussian_times)
+    # Apply low-pass filter
+    if config.low_pass_filter_type == 'gaussian':
+        image = Image.gaussian_filter( grayscale_image, is_grayscale=True, 
+            times=config.gaussian_times )
+    elif config.low_pass_filter_type == 'mean':
+        image = Image.mean_filter( grayscale_image, config.mean_kernel_size )
+    elif config.low_pass_filter_type == 'none':
+        image = grayscale_image
+    else:
+        raise Exception('Invalid low-pass filter type')
     # ========================================================
 
 
@@ -123,8 +130,6 @@ if __name__ == "__main__":
     matches = list()
     pos = 0     # Position of the current block in the blocks list
 
-    #a = None
-    #b = None
     for (current_block, current_block_features) in blocks:
         extra = 0
         #similar_block_list = blocks[pos + 1 : pos + 1 + config.distance_threshold]
@@ -138,7 +143,7 @@ if __name__ == "__main__":
         #if current_block.center_row == 11 and current_block.center_col == 12:
         #    a = (pos, current_block, current_block_features)
         #    print a
-            
+        #    
         #if current_block.center_row == 16 and current_block.center_col == 40:
         #    b = (pos, current_block, current_block_features)
         #    print b
@@ -186,12 +191,12 @@ if __name__ == "__main__":
     #print "block a:\n" + str(a[2])
     #print "block b:\n" + str(b[2])
     #print
-    #print "compressed block a:\n" + str(compress_features(a[2]))
-    #print "compressed block b:\n" + str(compress_features(b[2]))
-    #print
+    ##print "compressed block a:\n" + str(compress_features(a[2]))
+    ##print "compressed block b:\n" + str(compress_features(b[2]))
+    ##print
     #print "distance: " + str(euclidean_distance( a[2], b[2] ))
-    #print "distance of compressed blocks: " + str(
-    #    euclidean_distance( compress_features(a[2]), compress_features(b[2]) ))
+    ##print "distance of compressed blocks: " + str(
+    ##    euclidean_distance( compress_features(a[2]), compress_features(b[2]) ))
     #print
     #pb_sz = 3
     #for r in range(a[1].center_row-pb_sz, a[1].center_row+pb_sz+1):

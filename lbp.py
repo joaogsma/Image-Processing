@@ -2,8 +2,8 @@ import image
 from math import sin, cos, pi, floor, ceil
 
 # s function used in the LBP
-def lbp_s(value):
-    if (value >= 0):
+def lbp_s(value, t = 0):
+    if (value >= t):
         return 1
     return 0
 
@@ -23,7 +23,7 @@ def lbp(image, P, R, row, col):
     lbp = int(0)
 
     p = 0
-    while p < P :
+    while p < P:
         gp_c = -R * sin(2*pi*p/P)
         gp_r = R * cos(2*pi*p/P)
 
@@ -32,6 +32,33 @@ def lbp(image, P, R, row, col):
 
         increment = lbp_s(gp_color - gc_color) << p
         
+        lbp |= increment
+        p += 1
+
+    return lbp
+
+
+def center_symmetric_lbp(image, P, R, row, col):
+    # Accumulator for the sequence
+    lbp = int(0)
+
+    colors = list()
+
+    p = 0
+    while p < P:
+        # Increments in row and col coordinates
+        gp_c = -R * sin(2*pi*p/P)
+        gp_r = R * cos(2*pi*p/P)
+
+        # Compute and store the interpolated color
+        gp_color = int(bilinear_interpolation(image, gp_r + row, gp_c + col))
+        colors.append(gp_color)
+        
+        p += 1
+
+    p = 0
+    while p < (P / 2) - 1:
+        increment = lbp_s( colors[p] - colors[p + P/2], 2.5 ) << p
         lbp |= increment
         p += 1
 
@@ -76,6 +103,31 @@ def rotation_invariant_uniform_lbp(image, P, R, row, col):
         p +=1 
 
     return result
+
+
+def circular_right_shift(value, sequence_length):
+    return (((1 & value) << sequence_length) | value) >> 1
+
+
+def rotation_invariant_center_symmetric_lbp(image, P, R, row, col):
+    cs_lbp_sequence = center_symmetric_lbp(image, P, R, row, col)
+
+    value = cs_lbp_sequence
+    smallest = cs_lbp_sequence
+    
+    # Try all shifted values. Because the cslbp sequence has length P/2,
+    # it opccupies P/2 bits and P/2 - 1 shifts are necessary to iterate 
+    # through all shifted values
+    i = 0
+    while i < P/2:
+        # Circularly right shift the value
+        value = circular_right_shift(value, P/2)
+        # Compare with smallest so far
+        if value < smallest:
+            smallest = value
+        i += 1
+
+    return smallest
 
 
 def no_interpolation(image, row, col):
