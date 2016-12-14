@@ -18,6 +18,27 @@ class Circular_Block:
             self.center_col <= self._img.width - config.block_radius)
 
 
+    def features2(self, do_sort=True):
+        if not self.valid():
+            raise Exception("Block not entirely inside image")
+
+        feature_list = list()
+
+        row = self.center_row - config.block_radius
+        while row <= self.center_row + config.block_radius:
+            col = self.center_col - config.block_radius
+            while col <= self.center_col + config.block_radius:
+                if self._inside_circle(row, col):
+                    lbp_sequence = self._img.get_lbp(row, col)
+                    feature_list.append( lbp_sequence )
+                col += 1
+            row += 1
+
+        if do_sort:
+            feature_list.sort()
+
+        return np.array(feature_list)        
+
     def features(self, do_sort=True):
         if not self.valid():
             raise Exception("Block not entirely inside image")

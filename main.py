@@ -6,6 +6,14 @@ from sys import maxint
 import numpy as np
 import config, sys
 
+def compress_features(vec):
+    compressed = np.zeros( config.P+2, dtype=int );
+    
+    for i in vec:
+        compressed[i] += 1
+
+    return compressed
+
 def compare_fn(vec1, vec2):
     i = 0
     size = vec1[1].shape[0]
@@ -78,11 +86,13 @@ if __name__ == "__main__":
     row = config.block_radius
     # One-past the last row number for circular blocks
     block_row_end = image.height - config.block_radius
+
     # Increment for range handled by threads
     row_increment = int( round(block_row_end / float(config.num_threads)) )
     
     blocks = list()
     blocks_queue = Queue()
+    num_processes = 0
 
     print "Computing features of circular blocks..."
     while row < block_row_end:
@@ -90,11 +100,11 @@ if __name__ == "__main__":
             args=(row, min(row+row_increment, block_row_end), image, blocks_queue))
         new_process.start()
         row += row_increment
+        num_processes += 1
 
-    num_blocks = 0
-    while num_blocks < config.num_threads:
+    while num_processes > 0:
         blocks.extend( blocks_queue.get() )
-        num_blocks += 1              
+        num_processes -= 1              
     # =========================================================================
     
 
@@ -113,6 +123,8 @@ if __name__ == "__main__":
     matches = list()
     pos = 0     # Position of the current block in the blocks list
 
+    #a = None
+    #b = None
     for (current_block, current_block_features) in blocks:
         extra = 0
         #similar_block_list = blocks[pos + 1 : pos + 1 + config.distance_threshold]
@@ -123,6 +135,14 @@ if __name__ == "__main__":
         similar_pos = pos + 1
         limit = min( len(blocks), pos + config.distance_threshold + extra + 1 )
 
+        #if current_block.center_row == 11 and current_block.center_col == 12:
+        #    a = (pos, current_block, current_block_features)
+        #    print a
+            
+        #if current_block.center_row == 16 and current_block.center_col == 40:
+        #    b = (pos, current_block, current_block_features)
+        #    print b
+
         while similar_pos < min( len(blocks), pos+config.distance_threshold+extra+1 ):
             (similar_block, similar_block_features) = blocks[similar_pos]
             
@@ -130,6 +150,7 @@ if __name__ == "__main__":
             center_distance = euclidean_distance( 
                 np.array([current_block.center_row, current_block.center_col]), 
                 np.array([similar_block.center_row, similar_block.center_col]))
+
 
             # Block centers are too close, this block is to be ignored
             if center_distance < 2 * config.block_radius:
@@ -158,6 +179,40 @@ if __name__ == "__main__":
             matches.append( current_block )
             matches.append( best_match )
     # ======================================================
+
+    #print "pos a: " + str(a[0])
+    #print "pos b: " + str(b[0])
+    #print
+    #print "block a:\n" + str(a[2])
+    #print "block b:\n" + str(b[2])
+    #print
+    #print "compressed block a:\n" + str(compress_features(a[2]))
+    #print "compressed block b:\n" + str(compress_features(b[2]))
+    #print
+    #print "distance: " + str(euclidean_distance( a[2], b[2] ))
+    #print "distance of compressed blocks: " + str(
+    #    euclidean_distance( compress_features(a[2]), compress_features(b[2]) ))
+    #print
+    #pb_sz = 3
+    #for r in range(a[1].center_row-pb_sz, a[1].center_row+pb_sz+1):
+    #    row = ''
+    #    for c in range(a[1].center_col-pb_sz, a[1].center_col+pb_sz+1):
+    #        if r == a[1].center_row and c == a[1].center_col:
+    #            row += '|' + str(image._lbp_img[r][c]) + '|\t'
+    #        else:
+    #            row += str(image._lbp_img[r][c]) + '\t'
+    #    print row
+    #print
+    #for r in range(b[1].center_row-pb_sz, b[1].center_row+pb_sz+1):
+    #    row = ''
+    #    for c in range(b[1].center_col-pb_sz, b[1].center_col+pb_sz+1):
+    #        if r == b[1].center_row and c == b[1].center_col:
+    #            row += '|' + str(image._lbp_img[r][c]) + '|\t'
+    #        else:
+    #            row += str(image._lbp_img[r][c]) + '\t'
+    #    print row
+    #print (a[1].center_row, a[1].center_col)
+    #print (b[1].center_row, b[1].center_col)
 
 
     del blocks

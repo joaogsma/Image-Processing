@@ -204,10 +204,12 @@ class Image:
 
         # Ensures the filter is 5x5
         truncate_val = 2/config.gaussian_sigma
-        # Apply gaussian filter to grayscale image
-        gaussian_filter(gray_image._img, sigma=config.gaussian_sigma, 
-            truncate=truncate_val, output=result._img, mode='reflect')
-        times -= 1
+        
+        if (times > 0):
+            # Apply gaussian filter to grayscale image
+            gaussian_filter(gray_image._img, sigma=config.gaussian_sigma, 
+                truncate=truncate_val, output=result._img, mode='reflect')
+            times -= 1
 
         # Apply the filter the remaining number of times. The first time is done
         # separately for memory optimization
@@ -228,14 +230,14 @@ class Image:
 
             while window_pos_col < image.width:
                 # Max row and col for this window
-                max_row = min(window_pos_col+config.custom_filter_height, image.height)
+                max_row = min(window_pos_row+config.custom_filter_height, image.height)
                 max_col = min(window_pos_col+config.custom_filter_width, image.width)
                 
                 # Counter for white pixels
                 white_pixels = 0
 
                 # ===== Count the number of black pixels in the window =====
-                row = window_pos_col
+                row = window_pos_row
                 while (row < max_row and 
                         white_pixels < config.custom_filter_threshold):
                     col = window_pos_col
@@ -251,7 +253,7 @@ class Image:
 
                 # If there are not enough white pixels, set all of them to black
                 if white_pixels < config.custom_filter_threshold:
-                    row = window_pos_col
+                    row = window_pos_row
                     while row < max_row:
                         col = window_pos_col
                         while col < max_col:

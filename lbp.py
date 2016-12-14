@@ -78,6 +78,10 @@ def rotation_invariant_uniform_lbp(image, P, R, row, col):
     return result
 
 
+def no_interpolation(image, row, col):
+    return image.get_pixel( int(round(row)), int(round(col)) )
+
+
 def bilinear_interpolation(image, row, col):
     # Tolerable difference
     epsilon = 1e-06
