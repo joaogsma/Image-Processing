@@ -1,0 +1,32 @@
+doves-test-1:
+    Block rarius = 9
+    Blocks spacing = 0
+    LBP type = lbp
+    P = 24
+    R = 3
+    Low-pass filter = mean (kernel 5)
+    Compress features = True
+    Matching type = kd-tree
+    Similarity threshold = 11
+
+doves-test-2:
+    Block rarius = 9
+    Blocks spacing = 0
+    LBP type = lbp
+    P = 24
+    R = 3
+    Low-pass filter = mean (kernel 5)
+    Compress features = True
+    Matching type = lex
+    Similarity threshold = 11
+
+doves-test-3:
+    Block rarius = 9
+    Blocks spacing = 1
+    LBP type = lbp
+    P = 24
+    R = 3
+    Low-pass filter = mean (kernel 5)
+    Compress features = True
+    Matching type = kd-tree
+    Similarity threshold = 11

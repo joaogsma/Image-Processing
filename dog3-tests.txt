@@ -1,0 +1,57 @@
+dog3-test-1:
+    Block radius = 9
+    Blocks spacing = 3
+    LBP type = lbp
+    P = 24
+    R = 3
+    Low-pass filter = mean
+    Mean kernel size = 5
+    Compress features = True
+    Matching type = kd-tree
+    Similarity threshold = 11
+    Default match radius = False
+
+dog3-test-2:
+    Block radius = 9
+    Blocks spacing = 3
+    LBP type = lbp
+    P = 24
+    R = 3
+    Low-pass filter = mean
+    Mean kernel size = 5
+    Compress features = True
+    Matching type = lex
+    Similarity threshold = 11
+    Default match radius = False
+
+dog3-test-3:
+    Block radius = 9
+    Blocks spacing = 2
+    LBP type = lbp
+    P = 24
+    R = 3
+    Low-pass filter = mean
+    Mean kernel size = 5
+    Compress features = True
+    Matching type = kd-tree
+    Similarity threshold = 11
+    Default match radius = False
+    Custom filter height = 8
+    Custom filter width = 8
+    Custom filter threshold = 39
+
+dog3-test-4:
+    Block radius = 9
+    Blocks spacing = 3
+    LBP type = lbp
+    P = 24
+    R = 3
+    Low-pass filter = mean
+    Mean kernel size = 5
+    Compress features = True
+    Matching type = kd-tree
+    Similarity threshold = 11
+    Default match radius = False
+    Custom filter height = 8
+    Custom filter width = 8
+    Custom filter threshold = 45

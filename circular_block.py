@@ -105,7 +105,8 @@ class Circular_Block:
             col = center_col
 
             while True:
-                if not self._inside_circle(row, col):
+                if not self._inside_circle(row + (row_increment/2), 
+                        col + (col_increment/2)):
                     break
 
                 # Get the pixel's LBP position and add it to the feature list
