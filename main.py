@@ -5,7 +5,7 @@ from multiprocessing import Process, Queue
 from scipy.spatial import KDTree
 from sys import maxint
 import numpy as np
-import config, sys
+import config, sys, random
 import os
 
 def compress_features(vec):
@@ -93,6 +93,75 @@ def compute_matches_parallel(blocks, features, begin_idx, end_idx, matches_indic
 
     matches_indices_queue.put( matches_indices )
 
+
+def k_mean(blocks, n_cluster = 8, n_iter = 50):
+    # chose n_cluster block at random to be the firsts clusters
+    clusters = np.array([random.choice(blocks) for i in range(n_cluster)])
+    # keep just the feature
+    clusters = np.array([c.feature_list for c in clusters])
+    # stop condition
+    count_cluster_change = n_cluster
+    c_inter = 0
+    while (count_cluster_change > 0 and c_inter < n_iter):
+        count_cluster_change = 0
+        # update the clust of each block
+        for block in blocks:
+            block.cluster = get_cluster(clusters, block)
+        # find new cluster
+        for i in range(len(clusters)):
+            # Get all blocks with the same cluster
+            data_per_clust = np.array([d.feature_list for d in blocks if d.cluster == i])
+            new_cluster = data_per_clust.mean(axis=0)
+            dist = euclidean_distance(new_cluster, clusters[i])
+            # condition to update the cluster
+            if dist > 1e-4: 
+                count_cluster_change += 1
+                clusters[i] = new_cluster
+
+        c_inter += 1 
+    return clusters
+
+ 
+def get_cluster(clusters, data):
+    best = -1
+    distance = 99999
+    for i in range(len(clusters)):
+        dist = euclidean_distance(clusters[i], data.feature_list)
+        if dist < distance:
+            distance = dist
+            best = i
+    return best
+
+
+def k_mean_matching(blocks, matches):
+    # to mark which pixel has been matched
+    matched = np.zeros((image.height, image.width))
+    clusters = k_mean(blocks)
+    # for each cluster
+    for i in range(len(clusters)):
+        data_per_clust = np.array([b for b in blocks if b.cluster == i])
+        # for each block in the cluster
+        for j in range(len(data_per_clust)):
+            block = data_per_clust[j]
+            # all blocks in the same cluster
+            for k in range(j, len(data_per_clust)):
+                block_comp = data_per_clust[k]
+
+                if matched[block_comp.center_row][block_comp.center_col] == 0:
+
+                    center_distance = euclidean_distance( 
+                            np.array([block.center_row, block.center_col]), 
+                            np.array([block_comp.center_row, block_comp.center_col]))
+
+                    if center_distance > 2 * config.block_radius:
+                        dist = euclidean_distance(block.feature_list, block_comp.feature_list)
+
+                        if dist < config.similarity_threshold:
+                            if matched[block.center_row][block.center_col] == 0:
+                                matched[block.center_row][block.center_col] = 1
+                                matches.append(block)
+                            matched[block_comp.center_row][block_comp.center_col] = 1
+                            matches.append(block_comp)
 
 def kd_tree_matching(blocks, features, matches):
     print "Finding matches..."
@@ -297,12 +366,13 @@ if __name__ == "__main__":
         lexicographical_matching(blocks, features, matches)
     elif config.matching_type == 'kd-tree':
         kd_tree_matching(blocks, features, matches)
+    elif config.matching_type == 'k-mean':
+        k_mean_matching(blocks, matches)
     else:
         raise Exception('Invalid matching type')
 
 
     del blocks
-
 
     # ==================== Post-processing ====================
     # Paint matched blocks in a black image

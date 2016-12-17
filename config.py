@@ -44,14 +44,14 @@ gaussian_times = 2
 # False if they should be extended
 compress_features = True
 
-# Matching type, 'lex' or 'kd-tree'
-matching_type = 'kd-tree'
+# Matching type, 'lex' or 'kd-tree' or 'k-mean'
+matching_type = 'k-mean'
 
 # Maximum matching distance searched per block
 distance_threshold = 30
 
 # Maximum distance for blocks to be considered a match
-similarity_threshold = 13 #6.2
+similarity_threshold = 6.2#13 #6.2
 
 # Set True if the verification for matches in the circular blocks should go 
 # beyond the distance_threshold to compensate for blocks that are too close 
