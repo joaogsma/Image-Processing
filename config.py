@@ -7,6 +7,10 @@ block_radius = 9 #9
 blocks_spacing = 2
 
 
+# Use PCA
+
+use_PCA = True
+
 # ========== LBP ==========
 
 # LBP type, 'lbp' or 'cslbp'

@@ -3,6 +3,7 @@ from circular_block import Circular_Block
 from math import sqrt, ceil
 from multiprocessing import Process, Queue
 from scipy.spatial import KDTree
+from sklearn.decomposition import PCA
 from sys import maxint
 import numpy as np
 import config, sys, random
