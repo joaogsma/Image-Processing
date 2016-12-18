@@ -61,6 +61,7 @@ def compute_features_line(positions, min_row, max_row, image, blocks):
 
 
 def compute_matches_parallel(blocks, features, begin_idx, end_idx, matches_indices_queue):
+    sys.setrecursionlimit(1000000)
     kd_tree = KDTree(features)
     matches_indices = list()
 
