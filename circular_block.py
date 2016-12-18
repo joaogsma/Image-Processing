@@ -8,6 +8,7 @@ class Circular_Block:
         self._img = image
         self.center_row = row
         self.center_col = col
+        self.cluster = -1
 
     # Check if this is a valid block (its entire area is contained inside 
     # the image
@@ -22,7 +23,7 @@ class Circular_Block:
         if not self.valid():
             raise Exception("Block not entirely inside image")
 
-        feature_list = list()
+        self.feature_list = list()
 
         row = self.center_row - config.block_radius
         while row <= self.center_row + config.block_radius:
@@ -30,14 +31,14 @@ class Circular_Block:
             while col <= self.center_col + config.block_radius:
                 if self._inside_circle(row, col):
                     lbp_sequence = self._img.get_lbp(row, col)
-                    feature_list.append( lbp_sequence )
+                    self.feature_list.append( lbp_sequence )
                 col += 1
             row += 1
 
         if do_sort:
-            feature_list.sort()
+            self.feature_list.sort()
 
-        return np.array(feature_list)        
+        return np.array(self.feature_list)        
 
     def features(self, do_sort=True):
         if not self.valid():
@@ -70,7 +71,7 @@ class Circular_Block:
         southwest_features = self._features_in_direction(self.center_row + 1, 
             self.center_col - 1, 1, -1)
         
-        feature_list = np.concatenate((
+        self.feature_list = np.concatenate((
             center_feature, north_features,
             south_features, east_features ,
             west_features , northeast_features ,
@@ -78,9 +79,9 @@ class Circular_Block:
             southwest_features) , axis = 0)
 
         if do_sort:
-            feature_list.sort()
+            self.feature_list.sort()
 
-        return feature_list
+        return self.feature_list
     
 
     def _sign(self, val):
@@ -93,7 +94,7 @@ class Circular_Block:
     def _features_in_direction(self, center_row, center_col, row_increment, 
             col_increment):
 
-        feature_list = list()
+        self.feature_list = list()
 
         # Compute the maximum row and column numbers
         max_row = center_row + row_increment * config.block_radius
@@ -111,7 +112,7 @@ class Circular_Block:
 
                 # Get the pixel's LBP position and add it to the feature list
                 lbp_sequence = self._img.get_lbp(row, col)
-                feature_list.append( lbp_sequence )
+                self.feature_list.append( lbp_sequence )
                 
                 col += col_increment
                 if col == max_col:
@@ -121,7 +122,7 @@ class Circular_Block:
             if row == max_row:
                 break
 
-        return feature_list
+        return self.feature_list
 
 
     def _inside_circle(self, row, col):
