@@ -1,4 +1,3 @@
-import image
 from math import sin, cos, pi, floor, ceil
 
 # s function used in the LBP
@@ -161,3 +160,6 @@ def bilinear_interpolation(image, row, col):
     # Interpolate in the i-direction. The resulting value is 
     # the interpolated result
     return (ceil(row)-row)*q1 + (row-floor(row))*q2
+
+# At the end to avoid circular dependency
+from image import Image
