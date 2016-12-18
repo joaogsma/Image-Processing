@@ -44,14 +44,17 @@ gaussian_times = 2
 # False if they should be extended
 compress_features = True
 
-# Matching type, 'lex' or 'kd-tree' or 'k-mean'
+# Matching type, 'lex', 'kd-tree' or 'k-mean'
 matching_type = 'k-mean'
 
 # Maximum matching distance searched per block
 distance_threshold = 30
 
 # Maximum distance for blocks to be considered a match
-similarity_threshold = 6.2#13 #6.2
+# Reasonable values:
+#   compress_features = False => 6.2 
+#   compress_features = True => 11 - 13
+similarity_threshold = 7
 
 # Set True if the verification for matches in the circular blocks should go 
 # beyond the distance_threshold to compensate for blocks that are too close 
@@ -64,7 +67,13 @@ expanded_matching = False
 # Specifications of the custom filter used to reduce false positive matches
 custom_filter_height = 8
 custom_filter_width = 8
-custom_filter_threshold = 39 #15
+
+# Reasonable values:
+#   blocks_spacing = 0 => 15
+#   blocks_spacing = 1 => 25
+#   blocks_spacing = 2 => 39
+#   blocks_spacing = 3 => 45
+custom_filter_threshold = 39
 
 # Radius of a matched area in the resulting mask. If True, the default_value is 
 # 1. If False, the value will be equivalent to the spacing between blocks + 1

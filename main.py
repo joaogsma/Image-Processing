@@ -135,6 +135,8 @@ def get_cluster(clusters, data):
 
 
 def k_mean_matching(blocks, matches):
+    print "Finding matches..."
+    
     # to mark which pixel has been matched
     matched = np.zeros((image.height, image.width))
     clusters = k_mean(blocks)
