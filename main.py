@@ -4,7 +4,7 @@ import sys
 from circular_block import Circular_Block
 from image import Image, black_image
 from matching import ( euclidean_distance, kd_tree_matching, 
-     lexicographical_matching, k_mean_matching )
+     lexicographical_matching, k_means_matching )
 from multiprocessing import Process, Queue
 
 def compress_features(vec):
@@ -151,7 +151,7 @@ if __name__ == "__main__":
     elif config.matching_type == 'kd-tree':
         kd_tree_matching(blocks, features, matches)
     elif config.matching_type == 'k-mean':
-        k_mean_matching(blocks, features, matches)
+        k_means_matching(blocks, features, matches)
     else:
         raise Exception('Invalid matching type')
 

@@ -187,15 +187,17 @@ def get_cluster(clusters, data):
     return best
 
 
-def k_mean(blocks, n_cluster = 8, n_iter = 50):
+def k_means(blocks, n_cluster, n_iter):
     # chose n_cluster block at random to be the first clusters
     clusters = np.array([random.choice(blocks) for i in range(n_cluster)])
     # keep just the features vector
     clusters = np.array([K_Means_Cluster(c.feature_list) for c in clusters])
     # stop condition
     count_cluster_change = n_cluster
-    c_inter = 0
-    while (count_cluster_change > 0 and c_inter < n_iter):
+    c_iter = 0
+    while (count_cluster_change > 0 and c_iter < n_iter):
+        print "Iteration #" + str(c_iter+1)
+
         # Empty the cluster list of assigned points
         for c in clusters:
             del c.data[:]
@@ -216,12 +218,12 @@ def k_mean(blocks, n_cluster = 8, n_iter = 50):
                 count_cluster_change += 1
                 clusters[i].center = new_center
 
-        c_inter += 1
+        c_iter += 1
 
     return clusters
 
  
-def k_mean_matching(blocks, features, matches):
+def k_means_matching(blocks, features, matches):
     
     # Create a list of k-means blocks
     blocks = [K_Means_Block(blocks[i], features[i]) for i in range(len(blocks))]
@@ -236,18 +238,24 @@ def k_mean_matching(blocks, features, matches):
     
     print "Computing clusters..."
     
-    clusters = k_mean(blocks)
+    clusters = k_means(blocks, config.k_means_cluster_num, config.k_means_max_it)
 
     print "Finding matches..."
     
+    cluster_num = 0
     # for each cluster
     for cluster in clusters:
         data_per_clust = np.array(cluster.data)
+        
+        cluster_num += 1
         
         # for each block in the cluster
         for j in range(len(data_per_clust)):
             block = data_per_clust[j]
         
+            print ( 'Cluster ' + str(cluster_num) + '/' + str(len(clusters)) + 
+                ', block ' + str(j+1) + '/' + str(len(data_per_clust)) )
+
             # all blocks in the same cluster
             for k in range(j, len(data_per_clust)):
                 block_comp = data_per_clust[k]

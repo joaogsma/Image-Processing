@@ -1,7 +1,7 @@
 num_threads = 8
 
 # Radius of circular blocks
-block_radius = 9 #9
+block_radius = 5 #9
 
 # Distance between circular blocks
 blocks_spacing = 2
@@ -24,7 +24,7 @@ R = 3
 # ========== LOW-PASS FILTER ==========
 
 # Type of filter, 'gaussian', 'mean' or 'none'
-low_pass_filter_type = 'gaussian'
+low_pass_filter_type = 'mean'
 
 # Kernel size for the mean filter. Must be an odd number
 mean_kernel_size = 5
@@ -45,7 +45,13 @@ gaussian_times = 2
 compress_features = True
 
 # Matching type, 'lex', 'kd-tree' or 'k-mean'
-matching_type = 'kd-tree'
+matching_type = 'k-mean'
+
+# Number of clusters in the k-means algorithm
+k_means_cluster_num = 30
+
+# Maximum iteracions in the k-means algorithm
+k_means_max_it = 50
 
 # Maximum matching distance searched per block
 distance_threshold = 30
@@ -54,7 +60,7 @@ distance_threshold = 30
 # Reasonable values:
 #   compress_features = False => 6.2 
 #   compress_features = True => 11 - 13
-similarity_threshold = 13
+similarity_threshold = 8
 
 # Set True if the verification for matches in the circular blocks should go 
 # beyond the distance_threshold to compensate for blocks that are too close 
