@@ -1,7 +1,7 @@
-num_threads = 8
+num_threads = 3
 
 # Radius of circular blocks
-block_radius = 9 #9
+block_radius = 5 #9
 
 # Distance between circular blocks
 blocks_spacing = 2
@@ -9,7 +9,7 @@ blocks_spacing = 2
 
 # ========== PCA ==========
 
-use_PCA = True
+use_PCA = False
 
 n_components = 20
 

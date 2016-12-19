@@ -4,7 +4,7 @@ import os
 import random
 import sys
 from math import sqrt
-from multiprocessing import Process, Queue
+from multiprocessing import Process, Queue, JoinableQueue
 from scipy.spatial import KDTree
 
 def euclidean_distance(vec1, vec2):
@@ -213,20 +213,77 @@ def k_means(blocks, n_cluster, n_iter):
         for i in range(len(clusters)):
             # Get all blocks with the same cluster
             data_per_clust = np.array([b.feature_list for b in clusters[i].data])
-            new_center = data_per_clust.mean(axis=0)
-            dist = euclidean_distance(new_center, clusters[i].center)
-            # condition to update the cluster
-            if dist > 1e-4: 
-                count_cluster_change += 1
-                clusters[i].center = new_center
+            
+            if len(data_per_clust) > 0:
+                new_center = data_per_clust.mean(axis=0)
+                dist = euclidean_distance(new_center, clusters[i].center)
+                # condition to update the cluster
+                if dist > 1e-4: 
+                    count_cluster_change += 1
+                    clusters[i].center = new_center
+
+        for cluster in clusters:
+            if len(cluster.data) == 0:
+                # Find the biggest cluster
+                biggest_cluster = max( clusters, key = lambda c: len(c.data) )
+                # Find the furthest point in it
+                distance_fn = lambda b: euclidean_distance( biggest_cluster.center, 
+                    b.feature_list )
+                furthest_block = max( biggest_cluster.data, key = distance_fn )
+                # Assign the point as the new cluster center
+                cluster.center = furthest_block.feature_list
+                # Only do this once per iteration
+                break
 
         c_iter += 1
 
+    print map(lambda c: len(c.data), clusters)
     return clusters
 
- 
+
+def compute_matches_in_cluster_parallel(cluster_queue, matched, matches_queue):
+    cluster = cluster_queue.get()
+
+    # Stop condition
+    if cluster == None:
+        return
+
+    matches = list()
+    data_per_clust = np.array(cluster.data)
+        
+    # for each block in the cluster
+    for j in range(len(data_per_clust)):
+        block = data_per_clust[j]
+        
+        print str( str(100 * float(j+1) / len(data_per_clust) + '%') )
+
+        # all blocks in the same cluster
+        for k in range(j, len(data_per_clust)):
+            block_comp = data_per_clust[k]
+
+            if ( (not matched[block.block.center_row][block.block.center_col]) and
+                    (not matched[block_comp.block.center_row][block_comp.block.center_col]) ):
+
+                center_distance = euclidean_distance( 
+                        np.array([block.block.center_row, block.block.center_col]), 
+                        np.array([block_comp.block.center_row, block_comp.block.center_col]))
+
+                if center_distance > 2 * config.block_radius:
+                    dist = euclidean_distance(block.feature_list, block_comp.feature_list)
+
+                    if dist < config.similarity_threshold:
+                        if not matched[block.block.center_row][block.block.center_col]:
+                            matched[block.block.center_row][block.block.center_col] = True
+                            matches.append( block.block )
+                        matched[block_comp.block.center_row][block_comp.block.center_col] = True
+                        matches.append( block_comp.block )
+
+    matches_queue.put(matches)
+    compute_matches_in_cluster_parallel(cluster_queue, matched, matches_queue)
+
+
+
 def k_means_matching(blocks, features, matches):
-    
     # Create a list of k-means blocks
     blocks = [K_Means_Block(blocks[i], features[i]) for i in range(len(blocks))]
 
@@ -244,39 +301,59 @@ def k_means_matching(blocks, features, matches):
 
     print "Finding matches..."
     
-    cluster_num = 0
-    # for each cluster
+    cluster_queue = Queue()
+    matches_queue = Queue()
+    
     for cluster in clusters:
-        data_per_clust = np.array(cluster.data)
-        
-        cluster_num += 1
-        
-        # for each block in the cluster
-        for j in range(len(data_per_clust)):
-            block = data_per_clust[j]
-        
-            print ( 'Cluster ' + str(cluster_num) + '/' + str(len(clusters)) + 
-                ', block ' + str(j+1) + '/' + str(len(data_per_clust)) )
+        cluster_queue.put(cluster)
+    for i in range(config.num_threads):
+        cluster_queue.put(None)
 
-            # all blocks in the same cluster
-            for k in range(j, len(data_per_clust)):
-                block_comp = data_per_clust[k]
+    for i in range(config.num_threads):
+        Process( target = compute_matches_in_cluster_parallel, 
+            args = (cluster_queue, matched, matches_queue) ).start()
 
-                if ( (not matched[block.block.center_row][block.block.center_col]) and
-                        (not matched[block_comp.block.center_row][block_comp.block.center_col]) ):
+    num_results = len(clusters)
+    while num_results > 0:
+        matches.extend( matches_queue.get() )
+        num_results -= 1
 
-                    center_distance = euclidean_distance( 
-                            np.array([block.block.center_row, block.block.center_col]), 
-                            np.array([block_comp.block.center_row, block_comp.block.center_col]))
+    print cluster_queue.empty()
+    print matches_queue.empty()
 
-                    if center_distance > 2 * config.block_radius:
-                        dist = euclidean_distance(block.feature_list, block_comp.feature_list)
-
-                        if dist < config.similarity_threshold:
-                            if not matched[block.block.center_row][block.block.center_col]:
-                                matched[block.block.center_row][block.block.center_col] = True
-                                matches.append( block.block )
-                            matched[block_comp.block.center_row][block_comp.block.center_col] = True
-                            matches.append( block_comp.block )
+    #cluster_num = 0
+    ## for each cluster
+    #for cluster in clusters:
+        #data_per_clust = np.array(cluster.data)
+#        
+        #cluster_num += 1
+#        
+        ## for each block in the cluster
+        #for j in range(len(data_per_clust)):
+            #block = data_per_clust[j]
+#        
+            #print ( 'Cluster ' + str(cluster_num) + '/' + str(len(clusters)) + 
+                #', block ' + str(j+1) + '/' + str(len(data_per_clust)) )
+#
+            ## all blocks in the same cluster
+            #for k in range(j, len(data_per_clust)):
+                #block_comp = data_per_clust[k]
+#
+                #if ( (not matched[block.block.center_row][block.block.center_col]) and
+                        #(not matched[block_comp.block.center_row][block_comp.block.center_col]) ):
+#
+                    #center_distance = euclidean_distance( 
+                            #np.array([block.block.center_row, block.block.center_col]), 
+                            #np.array([block_comp.block.center_row, block_comp.block.center_col]))
+#
+                    #if center_distance > 2 * config.block_radius:
+                        #dist = euclidean_distance(block.feature_list, block_comp.feature_list)
+#
+                        #if dist < config.similarity_threshold:
+                            #if not matched[block.block.center_row][block.block.center_col]:
+                                #matched[block.block.center_row][block.block.center_col] = True
+                                #matches.append( block.block )
+                            #matched[block_comp.block.center_row][block_comp.block.center_col] = True
+                            #matches.append( block_comp.block )
 
 # ==============================================================================
