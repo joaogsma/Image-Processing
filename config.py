@@ -1,11 +1,17 @@
 num_threads = 8
 
 # Radius of circular blocks
-block_radius = 5 #9
+block_radius = 9 #9
 
 # Distance between circular blocks
 blocks_spacing = 2
 
+
+# ========== PCA ==========
+
+use_PCA = True
+
+n_components = 20
 
 # ========== LBP ==========
 
@@ -60,7 +66,7 @@ distance_threshold = 30
 # Reasonable values:
 #   compress_features = False => 6.2 
 #   compress_features = True => 11 - 13
-similarity_threshold = 8
+similarity_threshold = 11
 
 # Set True if the verification for matches in the circular blocks should go 
 # beyond the distance_threshold to compensate for blocks that are too close 

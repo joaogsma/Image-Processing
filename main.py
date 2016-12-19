@@ -6,6 +6,12 @@ from image import Image, black_image
 from matching import ( euclidean_distance, kd_tree_matching, 
      lexicographical_matching, k_means_matching )
 from multiprocessing import Process, Queue
+from scipy.spatial import KDTree
+from sklearn.decomposition import PCA
+from sys import maxint
+import numpy as np
+import config, sys, random
+import os
 
 def compress_features(vec):
     compressed = np.zeros( config.P+2, dtype=int );
@@ -138,7 +144,17 @@ if __name__ == "__main__":
                 features.append( compress_features(f) )
             else:
                 features.append( f )
-        num_processes -= 1              
+        num_processes -= 1      
+
+
+    # ===================== PCA ===============================
+    
+
+    if config.use_PCA:
+        print 'Running PCA'
+        pca = PCA(n_components = config.n_components)
+        features = pca.fit_transform(features)
+
     # =========================================================================
     
     

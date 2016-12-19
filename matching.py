@@ -203,10 +203,12 @@ def k_means(blocks, n_cluster, n_iter):
             del c.data[:]
 
         count_cluster_change = 0
+
         # update the clust of each block
         for block in blocks:
             cluster_num = get_cluster(clusters, block)
             clusters[cluster_num].data.append( block )
+        
         # find new cluster
         for i in range(len(clusters)):
             # Get all blocks with the same cluster
