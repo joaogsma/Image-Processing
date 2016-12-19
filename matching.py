@@ -255,7 +255,6 @@ def compute_matches_in_cluster_parallel(cluster_queue, matched, matches_queue):
     for j in range(len(data_per_clust)):
         block = data_per_clust[j]
         
-        print str( str(100 * float(j+1) / len(data_per_clust) + '%') )
 
         # all blocks in the same cluster
         for k in range(j, len(data_per_clust)):
@@ -278,6 +277,8 @@ def compute_matches_in_cluster_parallel(cluster_queue, matched, matches_queue):
                         matched[block_comp.block.center_row][block_comp.block.center_col] = True
                         matches.append( block_comp.block )
 
+    print '    Cluster done'
+    
     matches_queue.put(matches)
     compute_matches_in_cluster_parallel(cluster_queue, matched, matches_queue)
 
@@ -317,9 +318,6 @@ def k_means_matching(blocks, features, matches):
     while num_results > 0:
         matches.extend( matches_queue.get() )
         num_results -= 1
-
-    print cluster_queue.empty()
-    print matches_queue.empty()
 
     #cluster_num = 0
     ## for each cluster
