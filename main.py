@@ -150,7 +150,7 @@ if __name__ == "__main__":
         lexicographical_matching(blocks, features, matches)
     elif config.matching_type == 'kd-tree':
         kd_tree_matching(blocks, features, matches)
-    elif config.matching_type == 'k-mean':
+    elif config.matching_type == 'k-means':
         k_means_matching(blocks, features, matches)
     else:
         raise Exception('Invalid matching type')
@@ -158,6 +158,7 @@ if __name__ == "__main__":
 
     del blocks
     del features
+
 
     # ==================== Post-processing ====================
     # Paint matched blocks in a black image

@@ -44,8 +44,8 @@ gaussian_times = 2
 # False if they should be extended
 compress_features = True
 
-# Matching type, 'lex', 'kd-tree' or 'k-mean'
-matching_type = 'k-mean'
+# Matching type, 'lex', 'kd-tree' or 'k-means'
+matching_type = 'k-means'
 
 # Number of clusters in the k-means algorithm
 k_means_cluster_num = 30
