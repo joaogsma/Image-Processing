@@ -4,7 +4,7 @@ num_threads = 3
 block_radius = 9 #9
 
 # Distance between circular blocks
-blocks_spacing = 2
+blocks_spacing = 1
 
 
 # ========== PCA ==========
@@ -85,7 +85,7 @@ custom_filter_width = 8
 #   blocks_spacing = 1 => 25
 #   blocks_spacing = 2 => 39
 #   blocks_spacing = 3 => 45
-custom_filter_threshold = 39
+custom_filter_threshold = 25
 
 # Radius of a matched area in the resulting mask. If True, the default_value is 
 # 1. If False, the value will be equivalent to the spacing between blocks + 1
